@@ -16,7 +16,7 @@
 // #include "schedule_edf.h"
 
 #define SIZE    100
-
+Task *priority_queues[MAX_PRIORITY] = {NULL};
 int main(int argc, char *argv[])
 {
     FILE *in;

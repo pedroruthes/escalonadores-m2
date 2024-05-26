@@ -5,13 +5,12 @@
 #ifndef TASK_H
 #define TASK_H
 
-// representation of a task
+// Representação da Task
 typedef struct task {
     char *name;
-    int tid;
     int priority;
     int burst;
-    int deadline;
+    struct task *next;    // Campo para o próximo ponteiro na lista
 } Task;
 
 #endif

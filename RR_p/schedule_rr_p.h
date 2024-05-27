@@ -1,8 +1,8 @@
-#define MIN_PRIORITY 1
-#define MAX_PRIORITY 10
+#define MIN_PRIORITY 1 // Define a prioridade mínima como 1
+#define MAX_PRIORITY 10 // Define a prioridade máxima como 10
 
-// add a task to the list 
+// Função para adicionar uma tarefa à lista
 void add(char *name, int priority, int burst);
 
-// invoke the scheduler
+// Função para invocar o escalonador
 void schedule();

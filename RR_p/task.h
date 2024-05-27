@@ -7,10 +7,10 @@
 
 // Representação da Task
 typedef struct task {
-    char *name;
-    int priority;
-    int burst;
-    struct task *next;    // Campo para o próximo ponteiro na lista
+    char *name;       // Nome da tarefa
+    int priority;     // Prioridade da tarefa
+    int burst;        // Tempo de burst (duração de execução) da tarefa
+    struct task *next; // Ponteiro para a próxima tarefa na lista
 } Task;
 
-#endif
+#endif // TASK_H

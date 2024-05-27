@@ -1,40 +1,55 @@
+/**
+ * Various list operations
+ */
+ 
 #include <stdlib.h>
-#include "list.h"
+#include <stdio.h>
+#include <string.h>
 
-// Insere uma nova task na lista
-void insert(struct node **head, Task *task) {
-    struct node *newNode = (struct node *) malloc(sizeof(struct node));
-    newNode->task = task;
+#include "list.h"
+#include "task.h"
+
+
+// add a new task to the list of tasks
+void insert(struct node **head, Task *newTask) {
+    // add the new task to the list 
+    struct node *newNode = malloc(sizeof(struct node));
+
+    newNode->task = newTask;
     newNode->next = *head;
     *head = newNode;
 }
 
-// Remove uma task da lista
+// delete the selected task from the list
 void delete(struct node **head, Task *task) {
-    struct node *temp = *head, *prev = NULL;
+    struct node *temp;
+    struct node *prev;
 
-    // Se a task a ser deletada está na cabeça
-    if (temp != NULL && temp->task == task) {
-        *head = temp->next;
-        free(temp);
-        return;
+    temp = *head;
+    // special case - beginning of list
+    if (strcmp(task->name,temp->task->name) == 0) {
+        *head = (*head)->next;
     }
-
-    // Procura a task a ser deletada
-    while (temp != NULL && temp->task != task) {
-        prev = temp;
+    else {
+        // interior or last element in the list
+        prev = *head;
         temp = temp->next;
+        while (strcmp(task->name,temp->task->name) != 0) {
+            prev = temp;
+            temp = temp->next;
+        }
+
+        prev->next = temp->next;
     }
-
-    // Se a task não foi encontrada
-    if (temp == NULL) return;
-
-    // Desconecta a task da lista e libera memória
-    prev->next = temp->next;
-    free(temp);
 }
 
-// Verifica se a lista está vazia
-int isEmpty(struct node *head) {
-    return head == NULL;
+// traverse the list
+void traverse(struct node *head) {
+    struct node *temp;
+    temp = head;
+
+    while (temp != NULL) {
+        printf("[%s] [%d] [%d]\n",temp->task->name, temp->task->priority, temp->task->burst);
+        temp = temp->next;
+    }
 }

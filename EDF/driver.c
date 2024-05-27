@@ -1,3 +1,11 @@
+/**
+ * Driver.c
+ *
+ * Schedule is in the format
+ *
+ *  [name] [priority] [CPU burst]
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +14,8 @@
 #include "list.h"
 #include "schedule_edf.h"
 
-#define SIZE 100
+#define SIZE    100
+Task *priority_queues[MAX_PRIORITY] = {NULL};
 
 int main(int argc, char *argv[])
 {
@@ -19,21 +28,16 @@ int main(int argc, char *argv[])
     int burst;
     int deadline;
 
-    in = fopen(argv[1], "r");
-    if (in == NULL) {
-        fprintf(stderr, "Error opening file\n");
-        return 1;
-    }
-    
-    while (fgets(task, SIZE, in) != NULL) {
+    in = fopen(argv[1],"r");
+
+    while (fgets(task,SIZE,in) != NULL) {
         temp = strdup(task);
-        name = strsep(&temp, ",");
-        priority = atoi(strsep(&temp, ","));
-        burst = atoi(strsep(&temp, ","));
-        // Only for EDF algorithm
+        name = strsep(&temp,",");
+        priority = atoi(strsep(&temp,","));
+        burst = atoi(strsep(&temp,","));
         deadline = atoi(strsep(&temp, ","));
 
-        // Add the task to the scheduler's list of tasks
+        // add the task to the scheduler's list of tasks
         add(name, priority, burst, deadline);
 
         free(temp);
@@ -41,7 +45,7 @@ int main(int argc, char *argv[])
 
     fclose(in);
 
-    // Invoke the scheduler
+    // invoke the scheduler
     schedule();
 
     return 0;

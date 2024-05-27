@@ -1,5 +1,6 @@
-#ifndef LIST_H
-#define LIST_H
+/**
+ * list data structure containing the tasks in the system
+ */
 
 #include "task.h"
 
@@ -8,8 +9,7 @@ struct node {
     struct node *next;
 };
 
+// insert and delete operations.
 void insert(struct node **head, Task *task);
 void delete(struct node **head, Task *task);
-int isEmpty(struct node *head);
-
-#endif
+void traverse(struct node *head);

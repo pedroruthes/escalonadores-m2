@@ -8,16 +8,14 @@
 
 #define TIME_QUANTUM 10
 
-// Global variables
+// Global variable for the time slice flag
 volatile int time_slice_flag = 0;
-int global_time = 0;  // Global time counter
 
 // Timer simulation function
 void* timer_simulation(void* arg) {
     while (1) {
         sleep(1);  // Simulate the time slice duration (1 second for simplicity)
         time_slice_flag = 1;
-        global_time++;
     }
     return NULL;
 }
@@ -33,18 +31,20 @@ Task* create_task(char* name, int priority, int burst, int deadline) {
     return new_task;
 }
 
-// Add a task to the list
+// Add a task to the list, inserting based on deadline
 void add(char* name, int priority, int burst, int deadline) {
     Task* new_task = create_task(name, priority, burst, deadline);
     Task** queue = &priority_queues[priority];
 
-    if (*queue == NULL) {
+    if (*queue == NULL || (*queue)->deadline > deadline) {
+        new_task->next = *queue;
         *queue = new_task;
     } else {
         Task* temp = *queue;
-        while (temp->next != NULL) {
+        while (temp->next != NULL && temp->next->deadline <= deadline) {
             temp = temp->next;
         }
+        new_task->next = temp->next;
         temp->next = new_task;
     }
 }
@@ -68,6 +68,7 @@ void schedule() {
     pthread_create(&timer_thread, NULL, timer_simulation, NULL);
     pthread_detach(timer_thread);
 
+    int time = 0;
     Task* task = get_next_task();
 
     while (task != NULL) {
@@ -79,22 +80,28 @@ void schedule() {
             time_slice_flag = 0;  // Reset the flag
 
             int run_time = (task->burst < TIME_QUANTUM) ? task->burst : TIME_QUANTUM;
-            run(task, run_time);
-            task->burst -= run_time;
+            int new_time = time + run_time;
 
-            printf("Task %s executed for %d units. Remaining burst: %d. Global time: %d\n", task->name, run_time, task->burst, global_time);
-
-            // Check if the task missed its deadline
-            if (global_time > task->deadline) {
-                printf("Task %s missed its deadline. Deadline: %d, Global time: %d\n", task->name, task->deadline, global_time);
-            }
-
-            if (task->burst <= 0) {
+            if (new_time > task->deadline) {
+                printf("Task %s não conseguiu completar antes da deadline.\n", task->name);
                 free(task->name);
                 free(task);
             } else {
-                // Re-add the task to the queue if it still has burst time remaining
-                add(task->name, task->priority, task->burst, task->deadline);
+                run(task, run_time);
+                printf("Tempo: %d\n", time);
+                time = new_time;
+                task->burst -= run_time;
+
+                printf("Task %s - Burst restante: %d\n", task->name, task->burst);
+
+                if (task->burst <= 0) {
+                    printf("Task %s finalizada.\n", task->name);
+                    free(task->name);
+                    free(task);
+                } else {
+                    // Re-add the task to the queue if it still has burst time remaining
+                    add(task->name, task->priority, task->burst, task->deadline);
+                }
             }
         }
 

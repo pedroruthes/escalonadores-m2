@@ -1,21 +1,12 @@
-/**
- * Driver.c
- *
- * Schedule is in the format
- *
- *  [name] [priority] [CPU burst]
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "task.h"
 #include "list.h"
-// #include "schedule_rr_p.h"
 #include "schedule_edf.h"
 
-#define SIZE    100
+#define SIZE 100
 
 int main(int argc, char *argv[])
 {
@@ -28,27 +19,29 @@ int main(int argc, char *argv[])
     int burst;
     int deadline;
 
-    in = fopen(argv[1],"r");
+    in = fopen(argv[1], "r");
+    if (in == NULL) {
+        fprintf(stderr, "Error opening file\n");
+        return 1;
+    }
     
-    while (fgets(task,SIZE,in) != NULL) {
+    while (fgets(task, SIZE, in) != NULL) {
         temp = strdup(task);
-        name = strsep(&temp,",");
-        priority = atoi(strsep(&temp,","));
-        burst = atoi(strsep(&temp,","));
-        //Only to EDF algorithm
-        deadline = atoi(srtsep(&temp, ","));
+        name = strsep(&temp, ",");
+        priority = atoi(strsep(&temp, ","));
+        burst = atoi(strsep(&temp, ","));
+        // Only for EDF algorithm
+        deadline = atoi(strsep(&temp, ","));
 
-        // add the task to the scheduler's list of tasks
-        // add(name,priority,burst);
-        //to EDF only
-        add(name,priority,burst, deadline);
+        // Add the task to the scheduler's list of tasks
+        add(name, priority, burst, deadline);
 
         free(temp);
     }
 
     fclose(in);
 
-    // invoke the scheduler
+    // Invoke the scheduler
     schedule();
 
     return 0;

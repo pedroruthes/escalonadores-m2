@@ -6,36 +6,37 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define TIME_QUANTUM 10
+#define TIME_QUANTUM 10  // Define o tempo máximo de execução para cada parte de tempo
 
-// Global variable for the time slice flag
+// Variável global para sinalizar o fim de uma parte de tempo
 volatile int time_slice_flag = 0;
 
-// Timer simulation function
+// Função de simulação de timer
 void* timer_simulation(void* arg) {
     while (1) {
-        sleep(1);  // Simulate the time slice duration (1 second for simplicity)
-        time_slice_flag = 1;
+        sleep(1);  // Simula a duração de uma parte de tempo (1 segundo para simplicidade)
+        time_slice_flag = 1;  // Sinaliza que uma parte de tempo terminou
     }
     return NULL;
 }
 
-// Helper function to create a new task
+// Função auxiliar para criar uma nova tarefa
 Task* create_task(char* name, int priority, int burst, int deadline) {
     Task* new_task = (Task*)malloc(sizeof(Task));
-    new_task->name = strdup(name);
-    new_task->priority = priority;
-    new_task->burst = burst;
-    new_task->deadline = deadline;
-    new_task->next = NULL;
+    new_task->name = strdup(name);  // Copia o nome da tarefa
+    new_task->priority = priority;  // Define a prioridade
+    new_task->burst = burst;  // Define o tempo de burst
+    new_task->deadline = deadline;  // Define a deadline
+    new_task->next = NULL;  // Inicializa o próximo ponteiro como NULL
     return new_task;
 }
 
-// Add a task to the list, inserting based on deadline
+// Adiciona uma tarefa à lista, inserindo-a com base na deadline
 void add(char* name, int priority, int burst, int deadline) {
     Task* new_task = create_task(name, priority, burst, deadline);
-    Task** queue = &priority_queues[priority];
+    Task** queue = &priority_queues[priority];  // Obtém a fila de tarefas para a prioridade dada
 
+    // Insere a tarefa na posição correta com base na deadline
     if (*queue == NULL || (*queue)->deadline > deadline) {
         new_task->next = *queue;
         *queue = new_task;
@@ -49,62 +50,64 @@ void add(char* name, int priority, int burst, int deadline) {
     }
 }
 
-// Helper function to get the next task to run
+// Função auxiliar para obter a próxima tarefa a ser executada
 Task* get_next_task() {
     for (int i = MIN_PRIORITY; i <= MAX_PRIORITY; i++) {
         if (priority_queues[i] != NULL) {
-            Task* task = priority_queues[i];
-            priority_queues[i] = task->next;
+            Task* task = priority_queues[i];  // Obtém a tarefa da frente da fila
+            priority_queues[i] = task->next;  // Atualiza a fila removendo a tarefa obtida
             task->next = NULL;
             return task;
         }
     }
-    return NULL;
+    return NULL;  // Retorna NULL se não houver tarefas
 }
 
-// Invoke the scheduler
+// Invoca o escalonador
 void schedule() {
     pthread_t timer_thread;
-    pthread_create(&timer_thread, NULL, timer_simulation, NULL);
-    pthread_detach(timer_thread);
+    pthread_create(&timer_thread, NULL, timer_simulation, NULL);  // Cria uma thread para a simulação do timer
+    pthread_detach(timer_thread);  // Desvincula a thread para que ela rode em segundo plano
 
-    int time = 0;
-    Task* task = get_next_task();
+    int time = 0;  // Inicializa o tempo total de execução
+    Task* task = get_next_task();  // Obtém a primeira tarefa a ser executada
 
     while (task != NULL) {
         while (task->burst > 0 && !time_slice_flag) {
-            // Wait for the time slice flag to be set
-            usleep(1000);
+            // Espera até que a flag da parte de tempo seja setada
+            usleep(1000);  // Espera por 1 milissegundo
         }
         if (time_slice_flag) {
-            time_slice_flag = 0;  // Reset the flag
+            time_slice_flag = 0;  // Reseta a flag
 
-            int run_time = (task->burst < TIME_QUANTUM) ? task->burst : TIME_QUANTUM;
-            int new_time = time + run_time;
+            int run_time = (task->burst < TIME_QUANTUM) ? task->burst : TIME_QUANTUM;  // Calcula o tempo de execução
+            int new_time = time + run_time;  // Atualiza o tempo total de execução
 
             if (new_time > task->deadline) {
+                // Verifica se a tarefa não pode ser completada antes da deadline
                 printf("Task %s não conseguiu completar antes da deadline.\n", task->name);
                 free(task->name);
                 free(task);
             } else {
-                run(task, run_time);
+                run(task, run_time);  // Executa a tarefa pelo tempo calculado
                 printf("Tempo: %d\n", time);
                 time = new_time;
-                task->burst -= run_time;
+                task->burst -= run_time;  // Atualiza o tempo de burst restante
 
                 printf("Task %s - Burst restante: %d\n", task->name, task->burst);
 
                 if (task->burst <= 0) {
+                    // Se a tarefa estiver completa
                     printf("Task %s finalizada.\n", task->name);
                     free(task->name);
                     free(task);
                 } else {
-                    // Re-add the task to the queue if it still has burst time remaining
+                    // Reinsere a tarefa na fila se ainda houver tempo de burst restante
                     add(task->name, task->priority, task->burst, task->deadline);
                 }
             }
         }
 
-        task = get_next_task();
+        task = get_next_task();  // Obtém a próxima tarefa a ser executada
     }
 }

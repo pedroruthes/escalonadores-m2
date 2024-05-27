@@ -80,10 +80,11 @@ void schedule() {
 
             int run_time = task->burst > TIME_QUANTUM ? TIME_QUANTUM : task->burst; // Calcula o tempo de execução
             task->burst -= run_time; // Atualiza o burst da tarefa
-            time += run_time; // Atualiza o tempo total de execução
 
             printf("Tempo: %d\n", time);
             run(task, run_time); // Printa a task
+
+            time += run_time; // Atualiza o tempo total de execução
 
             if (task->burst > 0) {
                 // Se a tarefa não terminou, adiciona de volta à fila

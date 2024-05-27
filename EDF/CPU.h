@@ -1,6 +1,6 @@
-// length of a time quantum
+// Tamanho de um quantum de tempo
 #define QUANTUM 10
 #include "task.h"
 
-// run the specified task for the following time slice
+// Printa a tarefa especificada pelo intervalo de tempo fornecido
 void run(Task *task, int slice);
